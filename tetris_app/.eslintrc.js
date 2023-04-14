@@ -4,7 +4,11 @@ module.exports = {
     es2021: true,
     node: true,
   },
-  extends: ['eslint:recommended', 'plugin:react/recommended', 'plugin:@typescript-eslint/recommended'],
+  extends: [
+    'eslint:recommended',
+    'plugin:react/recommended',
+    'plugin:@typescript-eslint/recommended',
+  ],
   overrides: [],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -14,5 +18,6 @@ module.exports = {
   plugins: ['react', '@typescript-eslint'],
   rules: {
     'react/no-unknown-property': ['error', { ignore: ['css'] }],
+    'react/react-in-jsx-scope': 'off',
   },
 };
