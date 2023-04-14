@@ -1,7 +1,7 @@
+import React from 'react';
 import { css } from '@emotion/react';
 import { responsibleCss } from '@/utils';
-import React from 'react';
-import { tileOptions } from '@/feature/constants';
+import { tileOptions } from '@/feature/tetris/constants';
 
 const tileCss = css`
   border: 0.5px solid #7f7f7f;
@@ -11,6 +11,7 @@ const tileCssColor = (color: string) =>
   css`
     background-color: ${color};
   `;
+
 const tileCssSize = css(
   responsibleCss({
     width: [

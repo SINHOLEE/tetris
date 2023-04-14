@@ -1,8 +1,12 @@
 import styled from '@emotion/styled';
-import React from 'react';
 import Board from '@/feature/tetris/Board';
+import { useState } from 'react';
 
-const TetrisGame = () => {
+type GameStatus = 'idle' | 'playing' | 'gameOver' | 'pause';
+
+const Game = () => {
+  const [gameStatus, setGameStatus] = useState<GameStatus>('idle');
+
   return (
     <TetrisGameWrapper>
       <Empty />
@@ -11,7 +15,7 @@ const TetrisGame = () => {
   );
 };
 
-export default TetrisGame;
+export default Game;
 
 const TetrisGameWrapper = styled.div`
   display: flex;
