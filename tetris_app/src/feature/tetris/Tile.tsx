@@ -29,8 +29,6 @@ const tileCssSize = css(
 
 type TileProps = {
   color: string;
-  size: number;
-  idx: number;
 };
 
 const Tile = ({ color }: TileProps) => {

@@ -6,7 +6,7 @@ import { tileOptions } from '@/feature/tetris/constants';
 import Tile from '@/feature/tetris/Tile';
 import { GameStatus } from '@/feature/tetris/types';
 
-const TILE_COLOR_MAP = {
+const TILE_COLOR_MAP:Record<number, string> = {
   0: '#473d49',
   1: '#00FFFF',
   2: '#FFFF00',
@@ -21,7 +21,7 @@ type Block = {
   type: number;
   name: string;
   color: string;
-  blockGrid: number;
+  blockGrid: number[][];
 };
 const BLOCKS: Block[] = [
   {
@@ -212,19 +212,6 @@ const fillBlock = ({
   return clonedBoard;
 };
 
-type KeyMapType = {
-  [key: string]: undefined;
-} & {
-  s: string;
-  ArrowDown: string;
-  S: string;
-  a: string;
-  ArrowLeft: string;
-  A: string;
-  d: string;
-  ArrowRight: string;
-  D: string;
-};
 
 const KEYBOARD_MAP: Record<string, DirectionKeys | undefined> = {
   // w: 'UP',
@@ -249,7 +236,7 @@ const getDirectionOrUndefined = (
 ): DirectionKeys | undefined => {
   return KEYBOARD_MAP[eventKey];
 };
-let timer = -1;
+let timer:NodeJS.Timeout =setTimeout(()=>({}),0);
 type BoardProps = {
   gameStatus: GameStatus;
 };

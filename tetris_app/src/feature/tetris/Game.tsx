@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import Board from '@/feature/tetris/Board';
+import { Board } from '@/feature/tetris/Borad';
 import { useState } from 'react';
 import { GameStatus } from '@/feature/tetris/types';
 import ModalPortal from '@/components/ModalPortal';
@@ -17,7 +17,7 @@ const Game = () => {
 
       <Board gameStatus={gameStatus} />
       {(gameStatus === 'idle' || gameStatus === 'pause') && (
-        <ModalPortal>
+        <ModalPortal closePortal={() => undefined}>
           <div>
             <h2>게임 옵션</h2>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
