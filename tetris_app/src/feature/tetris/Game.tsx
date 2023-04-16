@@ -1,6 +1,6 @@
 import styled from '@emotion/styled';
 import { Board } from '@/feature/tetris/Borad';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { GameStatus } from '@/feature/tetris/types';
 import ModalPortal from '@/components/ModalPortal';
 
@@ -9,7 +9,25 @@ const Game = () => {
   const handleGameStart = () => setGameStatus('playing');
   const handleGamePause = () => setGameStatus('pause');
   const handleGameEnd = () => setGameStatus('idle');
-
+  useEffect(() => {
+    const keyHandler = (e: KeyboardEvent) => {
+      console.log(e.key);
+      if (e.key === 'Escape' && gameStatus === 'playing') {
+        setGameStatus('pause');
+      }
+      if (
+        e.key === 'Enter' &&
+        (gameStatus === 'idle' || gameStatus === 'pause')
+      ) {
+        setGameStatus('playing');
+      }
+      // if(gameStatus==='idle')
+    };
+    document.addEventListener('keydown', keyHandler);
+    return () => {
+      document.removeEventListener('keydown', keyHandler);
+    };
+  }, [gameStatus]);
   return (
     <TetrisGameWrapper>
       <Empty />
