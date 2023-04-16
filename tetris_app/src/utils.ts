@@ -76,6 +76,6 @@ export const responsibleCss = (props: ResponsibleCSSProperties) => `
     }
   `;
 
-export const deepCopy = <T extends unknown>(item: T) => {
+export const deepCopy = <T = unknown>(item: T) => {
   return JSON.parse(JSON.stringify(item)) as T;
 };

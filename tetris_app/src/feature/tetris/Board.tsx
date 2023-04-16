@@ -4,6 +4,7 @@ import styled from '@emotion/styled';
 import { deepCopy, responsibleCss } from '@/utils';
 import { tileOptions } from '@/feature/tetris/constants';
 import Tile from '@/feature/tetris/Tile';
+import { GameStatus } from '@/feature/tetris/types';
 
 const TILE_COLOR_MAP = {
   0: '#473d49',
@@ -20,13 +21,9 @@ type Block = {
   type: number;
   name: string;
   color: string;
-  blockGrid: [
-    [number, number, number],
-    [number, number, number],
-    [number, number, number],
-  ];
+  blockGrid: number;
 };
-const BLOCKS = [
+const BLOCKS: Block[] = [
   {
     type: 0,
     name: 'empty',
@@ -42,9 +39,10 @@ const BLOCKS = [
     name: 'L',
     color: TILE_COLOR_MAP[1],
     blockGrid: [
-      [1, 0, 0],
-      [1, 0, 0],
-      [1, 1, 0],
+      [0, 0, 0, 0],
+      [1, 0, 0, 0],
+      [1, 0, 0, 0],
+      [1, 1, 0, 0],
     ],
   },
   {
@@ -52,9 +50,10 @@ const BLOCKS = [
     name: 'Z',
     color: TILE_COLOR_MAP[2],
     blockGrid: [
-      [2, 2, 0],
-      [0, 2, 2],
-      [0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [2, 2, 0, 0],
+      [0, 2, 2, 0],
     ],
   },
   {
@@ -62,9 +61,10 @@ const BLOCKS = [
     name: 'block',
     color: TILE_COLOR_MAP[3],
     blockGrid: [
-      [3, 3, 0],
-      [3, 3, 0],
-      [0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [3, 3, 0, 0],
+      [3, 3, 0, 0],
     ],
   },
   {
@@ -72,9 +72,10 @@ const BLOCKS = [
     name: 'T',
     color: TILE_COLOR_MAP[4],
     blockGrid: [
-      [4, 4, 4],
-      [0, 4, 0],
-      [0, 0, 0],
+      [0, 0, 0, 0],
+      [0, 0, 0, 0],
+      [4, 4, 4, 0],
+      [0, 4, 0, 0],
     ],
   },
   {
@@ -114,6 +115,7 @@ const emptyBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -121,6 +123,10 @@ const emptyBoard = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -152,12 +158,12 @@ const DIRECTIONS = {
   },
 };
 
-type DirectionKeys = DirectionKeys;
+type DirectionKeys = keyof typeof DIRECTIONS;
 const calcNewPos = (directionKey: DirectionKeys, y: number, x: number) => {
   return [y + DIRECTIONS[directionKey].dy, x + DIRECTIONS[directionKey].dx];
 };
 const isOutBound = (y: number, x: number) => {
-  return y < 0 || y >= 20 || x < 0 || x >= 10;
+  return y < 0 || y >= 23 || x < 0 || x >= 10;
 };
 const canGoNext = ({
   board,
@@ -199,13 +205,28 @@ const fillBlock = ({
     for (let j = 0; j < blockGrid[i].length; j++) {
       if (!blockGrid[i][j]) continue;
       const [newY, newX] = [y + i, x + j];
+      if (isOutBound(newY, newX)) continue;
       clonedBoard[newY][newX] = type;
     }
   }
   return clonedBoard;
 };
 
-const KEYBOARD_MAP = {
+type KeyMapType = {
+  [key: string]: undefined;
+} & {
+  s: string;
+  ArrowDown: string;
+  S: string;
+  a: string;
+  ArrowLeft: string;
+  A: string;
+  d: string;
+  ArrowRight: string;
+  D: string;
+};
+
+const KEYBOARD_MAP: Record<string, DirectionKeys | undefined> = {
   // w: 'UP',
   // ArrowUp: 'UP',
   // W: 'UP',
@@ -221,12 +242,25 @@ const KEYBOARD_MAP = {
   d: 'RIGHT',
   ArrowRight: 'RIGHT',
   D: 'RIGHT',
-} as const;
+};
 
-let timer;
+const getDirectionOrUndefined = (
+  eventKey: string,
+): DirectionKeys | undefined => {
+  return KEYBOARD_MAP[eventKey];
+};
+let timer = -1;
+type BoardProps = {
+  gameStatus: GameStatus;
+};
 
-const Board = () => {
-  const pieceRef = useRef({ type: 5, y: 0, x: 4 });
+const createRandomPiece = () => ({
+  type: Math.floor(Math.random() * (BLOCKS.length - 1)) + 1,
+  y: 0,
+  x: 4,
+});
+const Board = ({ gameStatus }: BoardProps) => {
+  const pieceRef = useRef(createRandomPiece());
   const [board, setBoard] = useState(
     fillBlock({
       blockGrid: BLOCKS[pieceRef.current.type].blockGrid,
@@ -234,9 +268,17 @@ const Board = () => {
       ...pieceRef.current,
     }),
   );
+
+  useEffect(() => {
+    if (gameStatus === 'idle') {
+      setBoard(deepCopy(emptyBoard));
+      pieceRef.current = createRandomPiece();
+    }
+  }, [gameStatus]);
   useEffect(() => {
     const keyPressHandler = (e: KeyboardEvent) => {
-      const direction = KEYBOARD_MAP[e.key];
+      const direction = getDirectionOrUndefined(e.key);
+      if (gameStatus !== 'playing') return;
       if (!direction) return;
       let newBoard = deepCopy(board);
       // 1. 현재위치 board를 지운다.
@@ -278,9 +320,10 @@ const Board = () => {
     return () => {
       document.removeEventListener('keydown', keyPressHandler);
     };
-  }, [board]);
+  }, [board, gameStatus]);
 
   useEffect(() => {
+    if (gameStatus !== 'playing') return;
     timer = setTimeout(() => {
       let newBoard = deepCopy(board);
       // 1. 현재위치 board를 지운다.
@@ -323,13 +366,28 @@ const Board = () => {
     return () => {
       clearTimeout(timer);
     };
-  }, [board]);
+  }, [board, gameStatus]);
 
+  if (gameStatus === 'idle') {
+    return (
+      <BoardWrapper>
+        {board
+          .slice(3)
+          .flat()
+          .map((num, idx) => (
+            <Tile color={TILE_COLOR_MAP[num]} key={idx} />
+          ))}
+      </BoardWrapper>
+    );
+  }
   return (
     <BoardWrapper>
-      {board.flat().map((num, idx) => (
-        <Tile color={TILE_COLOR_MAP[num]} key={idx} />
-      ))}
+      {board
+        .slice(3)
+        .flat()
+        .map((num, idx) => (
+          <Tile color={TILE_COLOR_MAP[num]} key={idx} />
+        ))}
     </BoardWrapper>
   );
 };

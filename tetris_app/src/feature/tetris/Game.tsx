@@ -1,16 +1,32 @@
 import styled from '@emotion/styled';
 import Board from '@/feature/tetris/Board';
 import { useState } from 'react';
-
-type GameStatus = 'idle' | 'playing' | 'gameOver' | 'pause';
+import { GameStatus } from '@/feature/tetris/types';
+import ModalPortal from '@/components/ModalPortal';
 
 const Game = () => {
   const [gameStatus, setGameStatus] = useState<GameStatus>('idle');
+  const handleGameStart = () => setGameStatus('playing');
+  const handleGamePause = () => setGameStatus('pause');
+  const handleGameEnd = () => setGameStatus('idle');
 
   return (
     <TetrisGameWrapper>
       <Empty />
-      <Board />
+      <button onClick={handleGamePause}>게임 일시 정지</button>
+
+      <Board gameStatus={gameStatus} />
+      {(gameStatus === 'idle' || gameStatus === 'pause') && (
+        <ModalPortal>
+          <div>
+            <h2>게임 옵션</h2>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <button onClick={handleGameStart}>게임 시작</button>
+              <button onClick={handleGameEnd}>게임 종료</button>
+            </div>
+          </div>
+        </ModalPortal>
+      )}
     </TetrisGameWrapper>
   );
 };
